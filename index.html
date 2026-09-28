@@ -106,6 +106,8 @@
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 10;
+                /* ต้องกว้างเต็มแถว: ถ้าหดตามเนื้อหา fitTicket กับ ResizeObserver จะวนย่อทีละ 4px ไม่หยุด */
+                width: 100%;
                 padding: 15px 10px !important;
                 background: rgba(25, 25, 25, 0.7);
                 backdrop-filter: blur(10px);
@@ -265,7 +267,6 @@
             position: relative;
             margin: 0 auto;
             overflow: visible;
-            transition: width 0.2s ease, height 0.2s ease;
         }
 
         .ticket {
@@ -279,7 +280,6 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
             box-sizing: border-box;
             transform-origin: 0 0;
-            transition: transform 0.2s ease;
         }
 
         .ticket::before,
