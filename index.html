@@ -1113,6 +1113,28 @@
             closeModal();
         }
 
+        function showSaveModal(dataUrl, fileName) {
+            document.getElementById('modal-title').innerText = 'บันทึกตั๋ว';
+            document.getElementById('modal-body').innerHTML = `
+                <img src="${dataUrl}" style="width:100%; display:block; -webkit-touch-callout:default;">
+                <p style="text-align:center; color:#aaa; font-size:14px;">กดค้างที่รูป แล้วเลือก "บันทึกไปยังรูปภาพ"</p>
+                <button class="btn-download" id="btn-share" style="margin-top:0;">📤 แชร์ / บันทึกรูป</button>`;
+            document.getElementById('btn-share').onclick = async () => {
+                try {
+                    const blob = await (await fetch(dataUrl)).blob();
+                    const file = new File([blob], fileName, { type: 'image/png' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file] });
+                    } else {
+                        alert('เครื่องนี้แชร์ไฟล์ไม่ได้ กรุณากดค้างที่รูปเพื่อบันทึก');
+                    }
+                } catch (e) {
+                    if (e.name !== 'AbortError') alert('แชร์ไม่สำเร็จ: ' + e);
+                }
+            };
+            document.getElementById('selectionModal').style.display = 'flex';
+        }
+
         function closeModal() { document.getElementById('selectionModal').style.display = 'none'; }
         window.onclick = function (e) { if (e.target == document.getElementById('selectionModal')) closeModal(); }
 
@@ -1183,10 +1205,19 @@
 
                 ctx.globalCompositeOperation = 'source-over';
 
-                const link = document.createElement('a');
-                link.download = `Movie-Ticket-Transparent-${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                const fileName = `Movie-Ticket-Transparent-${Date.now()}.png`;
+                const dataUrl = canvas.toDataURL('image/png');
+
+                // มือถือ: <a download> บน iOS จะเด้งถาม ดู/ดาวน์โหลด -> ไฟล์ไปอยู่แอป Files และ "ดู" ถูกบล็อก
+                // จึงโชว์รูปให้กดค้าง "บันทึกไปยังรูปภาพ" หรือกดปุ่มแชร์ (ต้องเป็นการกดใหม่ เพราะ share ต้องใช้ user gesture)
+                if (window.matchMedia('(pointer: coarse)').matches) {
+                    showSaveModal(dataUrl, fileName);
+                } else {
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = dataUrl;
+                    link.click();
+                }
 
                 btn.innerText = originalBtnText;
                 btn.disabled = false;
